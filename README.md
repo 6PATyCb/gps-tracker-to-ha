@@ -9,6 +9,8 @@ Custom-интеграция для `Home Assistant`, которая подклю
 
 ## Требования
 
+> **⚠️ Внимание:** REST-сервер `gps-tracker-server` пока **не опубликован** и будет опубликован позже в составе репозитория [gps-tracker](https://github.com/6PATyCb/gps-tracker). До публикации интеграция работает только с запущенным вами локальным сервером (пример команды ниже).
+
 - Запущенный сервер GPS-трекеров ([gps-tracker-server](https://github.com/6PATyCb/gps-tracker)) с REST-портом (по умолчанию `9080`), например:
   ```
   java -jar gps-tracker-server.jar --rest-port 9080
