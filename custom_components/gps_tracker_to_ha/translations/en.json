@@ -1,0 +1,82 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "GPS tracker server",
+        "description": "Set up the connection to your GPS tracker REST server. Provide the host and port of the server, the polling interval and whether to trust a self-signed HTTPS certificate.",
+        "data": {
+          "host": "Server host (IP or hostname)",
+          "port": "Server port",
+          "scan_interval": "Polling interval (seconds)",
+          "trust_all": "Trust self-signed HTTPS certificate"
+        }
+      },
+      "devices": {
+        "title": "Add a device",
+        "description": "Add a tracker by its IMEI. Tick \"add another\" to configure more devices.",
+        "data": {
+          "imei": "IMEI",
+          "name": "Friendly name",
+          "add_another": "Add another device"
+        }
+      },
+      "add_device_to_hub": {
+        "title": "Add a device",
+        "description": "This server is already configured. Add another tracker to it by IMEI.",
+        "data": {
+          "imei": "IMEI",
+          "name": "Friendly name",
+          "add_another": "Add another device"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the GPS tracker server. Check the host, port and certificate settings.",
+      "invalid_host": "The host must not be empty.",
+      "invalid_imei": "IMEI must be 8 to 16 digits.",
+      "duplicate_imei": "This IMEI is already configured."
+    },
+    "abort": {
+      "already_configured": "This server is already configured.",
+      "devices_added": "Device added to the existing configuration."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "GPS tracker server",
+        "description": "Update the connection settings.",
+        "data": {
+          "host": "Server host (IP or hostname)",
+          "port": "Server port",
+          "scan_interval": "Polling interval (seconds)",
+          "trust_all": "Trust self-signed HTTPS certificate"
+        }
+      },
+      "manage_devices": {
+        "title": "Devices",
+        "description": "Select devices to remove, or tick \"add device\" to add a new one.",
+        "data": {
+          "device_to_remove": "Devices to remove",
+          "add_device": "Add a device"
+        }
+      },
+      "add_device": {
+        "title": "Add a device",
+        "description": "Add a tracker by its IMEI.",
+        "data": {
+          "imei": "IMEI",
+          "name": "Friendly name",
+          "add_another": "Add another device"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the GPS tracker server. Check the host, port and certificate settings.",
+      "invalid_host": "The host must not be empty.",
+      "invalid_imei": "IMEI must be 8 to 16 digits.",
+      "duplicate_imei": "This IMEI is already configured.",
+      "last_device": "At least one device must remain. Add a new device first."
+    }
+  }
+}
