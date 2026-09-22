@@ -142,12 +142,16 @@ class GpsTrackerSensor(
             self.async_write_ha_state()
             return
 
-        changed = data != self._snapshot
         if self._kind == SensorKind.LAST_POLL:
-            # Сенсор статуса опроса всегда доступен, даже когда устройство офлайн.
+            # Сенсор статуса опроса всегда доступен и пишет каждый опрос,
+            # даже когда устройство офлайн — в этом его назначение.
             self._attr_available = True
-        else:
-            self._attr_available = data.available
+            self._attr_native_value = data.poll_status
+            self.async_write_ha_state()
+            return
+
+        changed = data.payload_changed(self._snapshot)
+        self._attr_available = data.available
 
         if self._kind == SensorKind.BATTERY:
             self._attr_native_value = data.battery if data.battery is not None else None
@@ -157,8 +161,6 @@ class GpsTrackerSensor(
             self._attr_native_value = data.satellites
         elif self._kind == SensorKind.COURSE:
             self._attr_native_value = data.course
-        elif self._kind == SensorKind.LAST_POLL:
-            self._attr_native_value = data.poll_status
 
         if changed:
             self._snapshot = data
@@ -176,6 +178,9 @@ class GpsTrackerSensor(
             "imei": self._imei,
             "last_poll_time": data.last_poll_time.isoformat(timespec="seconds")
             if data.last_poll_time
+            else None,
+            "last_success_time": data.last_success_time.isoformat(timespec="seconds")
+            if data.last_success_time
             else None,
             "last_http_status": data.last_http_status,
             "poll_error": data.poll_error,

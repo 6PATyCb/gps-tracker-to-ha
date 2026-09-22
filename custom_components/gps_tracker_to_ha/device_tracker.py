@@ -89,7 +89,7 @@ class GpsTrackerDeviceTracker(
             self.async_write_ha_state()
             return
 
-        changed = data != self._snapshot
+        changed = data.payload_changed(self._snapshot)
         self._attr_available = data.available
 
         if data.available and data.latitude is not None and data.longitude is not None:

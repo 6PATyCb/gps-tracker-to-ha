@@ -53,8 +53,26 @@ class GpsDeviceData:
     available: bool = False
     poll_status: str = "no_data"
     last_poll_time: datetime | None = None
+    last_success_time: datetime | None = None
     last_http_status: int | None = None
     poll_error: str | None = None
+
+    def payload_changed(self, other: "GpsDeviceData | None") -> bool:
+        """Изменились ли данные позиции по сравнению с other."""
+        if other is None:
+            return True
+        return (
+            self.time != other.time
+            or self.satellites != other.satellites
+            or self.latitude != other.latitude
+            or self.longitude != other.longitude
+            or self.speed != other.speed
+            or self.position_valid != other.position_valid
+            or self.course != other.course
+            or self.heading != other.heading
+            or self.battery != other.battery
+            or self.available != other.available
+        )
 
 
 def _parse_time(value: object) -> datetime | None:
@@ -123,6 +141,7 @@ class GpsTrackerCoordinator(DataUpdateCoordinator[dict[str, GpsDeviceData]]):
                     if parsed.poll_status != "invalid_data":
                         parsed.poll_status = "ok"
                         parsed.poll_error = None
+                        parsed.last_success_time = datetime.now()
                     return parsed
                 if response.status == 404:
                     _LOGGER.debug(
@@ -174,6 +193,10 @@ class GpsTrackerCoordinator(DataUpdateCoordinator[dict[str, GpsDeviceData]]):
                 heading=payload.get(ATTR_HEADING),
                 battery=int(battery) if battery is not None else None,
                 available=True,
+                poll_status=device.poll_status,
+                last_poll_time=device.last_poll_time,
+                last_http_status=device.last_http_status,
+                poll_error=device.poll_error,
             )
             return parsed
         except (TypeError, ValueError) as err:
