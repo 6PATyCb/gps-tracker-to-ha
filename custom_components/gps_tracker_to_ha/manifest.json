@@ -5,7 +5,7 @@
   "documentation": "https://github.com/6PATyCb/gps-tracker-to-ha",
   "issue_tracker": "https://github.com/6PATyCb/gps-tracker-to-ha/issues",
   "iot_class": "local_polling",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "requirements": [],
   "config_flow": true,
   "integration_type": "hub",

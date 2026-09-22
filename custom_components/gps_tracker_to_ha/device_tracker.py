@@ -92,7 +92,7 @@ class GpsTrackerDeviceTracker(
         changed = data != self._snapshot
         self._attr_available = data.available
 
-        if data.available and data.position_valid and data.latitude is not None and data.longitude is not None:
+        if data.available and data.latitude is not None and data.longitude is not None:
             self._attr_latitude = data.latitude
             self._attr_longitude = data.longitude
             self._attr_location_accuracy = DEFAULT_GPS_ACCURACY

@@ -51,6 +51,10 @@ class GpsDeviceData:
     heading: str | None = None
     battery: int | None = None
     available: bool = False
+    poll_status: str = "no_data"
+    last_poll_time: datetime | None = None
+    last_http_status: int | None = None
+    poll_error: str | None = None
 
 
 def _parse_time(value: object) -> datetime | None:
@@ -108,23 +112,37 @@ class GpsTrackerCoordinator(DataUpdateCoordinator[dict[str, GpsDeviceData]]):
         """Получить данные одного устройства из REST API."""
         url = f"{self.base_url}/gps/{device.imei}"
         ssl = not self._trust_all
+        device.last_poll_time = datetime.now()
         try:
             timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
             async with self._session.get(url, ssl=ssl, timeout=timeout) as response:
+                device.last_http_status = response.status
                 if response.status == 200:
                     payload = await response.json(content_type=None)
-                    return self._parse_payload(device, payload)
+                    parsed = self._parse_payload(device, payload)
+                    if parsed.poll_status != "invalid_data":
+                        parsed.poll_status = "ok"
+                        parsed.poll_error = None
+                    return parsed
                 if response.status == 404:
                     _LOGGER.debug(
                         "Устройство %s не подключено к серверу (HTTP 404)", device.imei
                     )
+                    device.poll_status = "http_404"
+                    device.poll_error = "Трекер не подключён к серверу"
                 else:
                     _LOGGER.warning(
                         "Неожиданный HTTP %s для %s", response.status, url
                     )
+                    device.poll_status = "http_error"
+                    device.poll_error = f"Неожиданный HTTP {response.status}"
                 device.available = False
                 return device
         except (asyncio.TimeoutError, aiohttp.ClientError, OSError) as err:
+            device.poll_status = (
+                "timeout" if isinstance(err, asyncio.TimeoutError) else "client_error"
+            )
+            device.poll_error = str(err)
             _LOGGER.warning("Ошибка запроса %s: %s", url, err)
             device.available = False
             return device
@@ -134,6 +152,8 @@ class GpsTrackerCoordinator(DataUpdateCoordinator[dict[str, GpsDeviceData]]):
     ) -> GpsDeviceData:
         """Преобразовать JSON-ответ сервера в GpsDeviceData."""
         if not isinstance(payload, dict):
+            device.poll_status = "invalid_data"
+            device.poll_error = "Сервер вернул неожиданный формат ответа"
             _LOGGER.warning("Неожиданный формат ответа для %s: %s", device.imei, payload)
             device.available = False
             return device
@@ -157,6 +177,8 @@ class GpsTrackerCoordinator(DataUpdateCoordinator[dict[str, GpsDeviceData]]):
             )
             return parsed
         except (TypeError, ValueError) as err:
+            device.poll_status = "invalid_data"
+            device.poll_error = str(err)
             _LOGGER.warning(
                 "Некорректные данные GPS для %s: %s", device.imei, err
             )

@@ -1,4 +1,4 @@
-"""Платформа sensor: battery, speed, satellites, course по каждому устройству."""
+"""Платформа sensor: battery, speed, satellites, course и статус опроса."""
 
 from __future__ import annotations
 
@@ -31,6 +31,7 @@ class SensorKind(StrEnum):
     SPEED = "speed"
     SATELLITES = "satellites"
     COURSE = "course"
+    LAST_POLL = "last_poll"
 
 
 SENSOR_DEFINITIONS = {
@@ -57,6 +58,12 @@ SENSOR_DEFINITIONS = {
         "device_class": None,
         "unit": "°",
         "suffix": "course",
+    },
+    SensorKind.LAST_POLL: {
+        "name": "Last poll",
+        "device_class": None,
+        "unit": None,
+        "suffix": "last_poll",
     },
 }
 
@@ -87,7 +94,6 @@ class GpsTrackerSensor(
     """Датчик параметра одного трекера."""
 
     _attr_has_entity_name = True
-    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -107,6 +113,8 @@ class GpsTrackerSensor(
         if definition["device_class"] is not None:
             self._attr_device_class = definition["device_class"]
         self._attr_native_unit_of_measurement = definition["unit"]
+        if kind != SensorKind.LAST_POLL:
+            self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -135,7 +143,11 @@ class GpsTrackerSensor(
             return
 
         changed = data != self._snapshot
-        self._attr_available = data.available
+        if self._kind == SensorKind.LAST_POLL:
+            # Сенсор статуса опроса всегда доступен, даже когда устройство офлайн.
+            self._attr_available = True
+        else:
+            self._attr_available = data.available
 
         if self._kind == SensorKind.BATTERY:
             self._attr_native_value = data.battery if data.battery is not None else None
@@ -145,7 +157,27 @@ class GpsTrackerSensor(
             self._attr_native_value = data.satellites
         elif self._kind == SensorKind.COURSE:
             self._attr_native_value = data.course
+        elif self._kind == SensorKind.LAST_POLL:
+            self._attr_native_value = data.poll_status
 
         if changed:
             self._snapshot = data
             self.async_write_ha_state()
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        """Детали последнего опроса для сенсора status'а опроса."""
+        if self._kind != SensorKind.LAST_POLL:
+            return {}
+        data = self.coordinator.data.get(self._imei)
+        if data is None:
+            return {}
+        return {
+            "imei": self._imei,
+            "last_poll_time": data.last_poll_time.isoformat(timespec="seconds")
+            if data.last_poll_time
+            else None,
+            "last_http_status": data.last_http_status,
+            "poll_error": data.poll_error,
+            "available": data.available,
+        }
