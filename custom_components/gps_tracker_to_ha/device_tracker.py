@@ -18,8 +18,8 @@ from .const import (
     ATTR_LONGITUDE,
     ATTR_POSITION_VALID,
     ATTR_SATELLITES,
-    ATTR_SPEED,
     ATTR_TIME,
+    ATTR_VELOCITY,
     CONF_DEVICES,
     CONF_DEVICE_NAME,
     CONF_IMEI,
@@ -96,9 +96,6 @@ class GpsTrackerDeviceTracker(
             self._attr_latitude = data.latitude
             self._attr_longitude = data.longitude
             self._attr_location_accuracy = DEFAULT_GPS_ACCURACY
-        else:
-            self._attr_latitude = None
-            self._attr_longitude = None
 
         if changed:
             self._snapshot = data
@@ -114,7 +111,7 @@ class GpsTrackerDeviceTracker(
         if data is not None:
             attrs.update(
                 {
-                    ATTR_SPEED: data.speed,
+                    ATTR_VELOCITY: data.speed,
                     ATTR_COURSE: data.course,
                     ATTR_HEADING: data.heading,
                     ATTR_SATELLITES: data.satellites,

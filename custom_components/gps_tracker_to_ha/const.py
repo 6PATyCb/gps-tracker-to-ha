@@ -33,6 +33,9 @@ ATTR_COURSE = "course"
 ATTR_HEADING = "heading"
 ATTR_BATTERY = "battery"
 ATTR_IMEI = "imei"
+# Скорость в км/ч как velocity: home-tracker ожидает на device_tracker атрибут
+# velocity (км/ч) и сам переводит в м/с; атрибут speed он трактует как м/с.
+ATTR_VELOCITY = "velocity"
 
 # Точность GPS в метрах, которая пишется в атрибут gps_accuracy
 DEFAULT_GPS_ACCURACY = 2
