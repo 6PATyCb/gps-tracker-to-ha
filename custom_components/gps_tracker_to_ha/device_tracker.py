@@ -15,8 +15,6 @@ from .const import (
     ATTR_COURSE,
     ATTR_HEADING,
     ATTR_IMEI,
-    ATTR_LATITUDE,
-    ATTR_LONGITUDE,
     ATTR_POSITION_VALID,
     ATTR_SATELLITES,
     ATTR_TIME,
@@ -134,8 +132,6 @@ class GpsTrackerDeviceTracker(
                     ATTR_HEADING: data.heading,
                     ATTR_SATELLITES: data.satellites,
                     ATTR_BATTERY: data.battery,
-                    ATTR_LATITUDE: data.latitude,
-                    ATTR_LONGITUDE: data.longitude,
                     ATTR_POSITION_VALID: data.position_valid,
                     ATTR_TIME: data.time.strftime("%Y-%m-%d %H:%M:%S") if data.time else None,
                 }
