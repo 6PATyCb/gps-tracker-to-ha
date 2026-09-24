@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -49,7 +50,7 @@ async def async_setup_entry(
 
 
 class GpsTrackerDeviceTracker(
-    CoordinatorEntity[GpsTrackerCoordinator], TrackerEntity
+    CoordinatorEntity[GpsTrackerCoordinator], TrackerEntity, RestoreEntity
 ):
     """device_tracker, положение которого обновляется координатором."""
 
@@ -78,6 +79,23 @@ class GpsTrackerDeviceTracker(
     def _device_data(self) -> GpsDeviceData | None:
         """Текущие данные из координатора."""
         return self.coordinator.data.get(self._imei)
+
+    async def async_added_to_hass(self) -> None:
+        """Восстановить последнюю известную позицию после перезапуска."""
+        await super().async_added_to_hass()
+        if (last_state := await self.async_get_last_state()) is None:
+            return
+        try:
+            lat = last_state.attributes.get("latitude")
+            lon = last_state.attributes.get("longitude")
+            if lat is not None and lon is not None:
+                self._attr_latitude = float(lat)
+                self._attr_longitude = float(lon)
+                self._attr_location_accuracy = float(
+                    last_state.attributes.get("gps_accuracy", DEFAULT_GPS_ACCURACY)
+                )
+        except (TypeError, ValueError):
+            pass
 
     @callback
     def _handle_coordinator_update(self) -> None:
